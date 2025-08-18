@@ -1,20 +1,16 @@
 const express = require('express');
-const cors = require('cors');
+const path = require('path');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-app.use(cors());
+// Pour servir les fichiers statiques (HTML, CSS, JS, etc.)
+app.use(express.static(path.join(__dirname, '../public')));
 app.use(express.json());
-app.use(express.static('public'));
 
+// Exemple de route API
 app.post('/api/verif', (req, res) => {
-  const { card } = req.body;
-  // Ex : vérification simple, à remplacer selon la logique attendue
-  if (card && card.length === 16 && /^\d+$/.test(card)) {
-    res.json({ status: 'ok', message: 'Carte valide ✅' });
-  } else {
-    res.json({ status: 'error', message: 'Carte invalide ❌' });
-  }
+  // Traitement de la vérification ici
+  res.json({ status: 'ok', message: 'Vérification à implémenter' });
 });
 
 app.listen(PORT, () => {
