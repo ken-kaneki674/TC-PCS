@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin - CardCheck+</title>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+  <style>
+    .admin-container { max-width: 400px; margin: 60px auto; background: #fff; border-radius: 18px; box-shadow: 0 8px 32px rgba(80,80,180,0.12); padding: 36px 28px; text-align: center; position: relative; z-index: 1; }
+    .admin-title { font-size: 1.4rem; color: #2d2d6a; font-weight: 700; margin-bottom: 18px; }
+    .admin-login input { width: 100%; padding: 12px; border: 1.5px solid #d1d5db; border-radius: 8px; font-size: 1.05rem; background: #f3f4f6; margin-bottom: 16px; }
+    .admin-login button { width: 100%; padding: 14px; background: linear-gradient(90deg, #6366f1 0%, #60a5fa 100%); color: #fff; border: none; border-radius: 8px; font-size: 1.15rem; font-weight: 600; cursor: pointer; margin-top: 10px; box-shadow: 0 2px 8px #6366f133; transition: background 0.2s, transform 0.1s; }
+    .admin-login button:hover { background: linear-gradient(90deg, #4338ca 0%, #2563eb 100%); transform: translateY(-2px) scale(1.03); }
+    .admin-section { display: none; }
+    .admin-section.active { display: block; }
+    .admin-logout { margin-top: 18px; color: #6366f1; cursor: pointer; font-size: 1rem; }
+  </style>
+</head>
+<body>
+  <div class="admin-container">
+    <div class="logo" style="margin-bottom: 18px;">
+      <svg width="44" height="44" viewBox="0 0 44 44" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="22" cy="22" r="22" fill="#6366f1"/>
+        <path d="M13 22C13 17.0294 17.0294 13 22 13C26.9706 13 31 17.0294 31 22C31 26.9706 26.9706 31 22 31C17.0294 31 13 26.9706 13 22Z" fill="#fff"/>
+        <path d="M22 18V26" stroke="#6366f1" stroke-width="2.5" stroke-linecap="round"/>
+        <circle cx="22" cy="28" r="1.5" fill="#6366f1"/>
+      </svg>
+      <span class="logo-text">CardCheck+ Admin</span>
+    </div>
+    <div class="admin-title"><i class="fa-solid fa-user-shield"></i> Espace Administration</div>
+    <form class="admin-login" id="adminLoginForm">
+      <input type="password" id="adminPassword" placeholder="Mot de passe admin" required>
+      <button type="submit">Se connecter</button>
+      <div id="adminLoginError" style="color:#dc2626;min-height:24px;margin-top:8px;"></div>
+    </form>
+    <div class="admin-section" id="adminSection">
+      <div style="margin-bottom:18px;font-weight:600;">Bienvenue, administrateur !</div>
+      <div style="margin-bottom:10px;text-align:right;">
+        <button type="button" id="exportCSVBtn" style="padding:7px 18px;font-size:0.98em;"><i class="fa-solid fa-file-csv"></i> Exporter CSV</button>
+      </div>
+      <div id="codesHistory" style="max-height:220px;overflow:auto;margin-bottom:18px;"></div>
+      <form id="changePwdForm" style="margin-bottom:18px;text-align:left;">
+        <div style="font-weight:600;margin-bottom:6px;">Changer le mot de passe admin :</div>
+        <input type="password" id="oldPwd" placeholder="Mot de passe actuel" required style="margin-bottom:8px;">
+        <input type="password" id="newPwd" placeholder="Nouveau mot de passe" required style="margin-bottom:8px;">
+        <button type="submit" style="width:100%;">Changer</button>
+        <div id="pwdChangeMsg" style="min-height:22px;font-size:0.98em;margin-top:6px;"></div>
+      </form>
+      <div class="admin-logout" id="adminLogout"><i class="fa-solid fa-arrow-right-from-bracket"></i> Déconnexion</div>
+    </div>
+  </div>
+  <script>
+    const loginForm = document.getElementById('adminLoginForm');
+    const adminSection = document.getElementById('adminSection');
+    const loginError = document.getElementById('adminLoginError');
+    const logoutBtn = document.getElementById('adminLogout');
+    const codesHistory = document.getElementById('codesHistory');
+    const changePwdForm = document.getElementById('changePwdForm');
+    const pwdChangeMsg = document.getElementById('pwdChangeMsg');
+    const exportCSVBtn = document.getElementById('exportCSVBtn');
+
+    function authHeaders() {
+      const token = localStorage.getItem('adminToken');
+      return token ? { 'Authorization': 'Bearer ' + token } : {};
+    }
+
+    loginForm.addEventListener('submit', function(e) {
+      e.preventDefault();
+      const pwd = document.getElementById('adminPassword').value;
+      fetch('/api/admin/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ password: pwd })
+      }).then(r => r.json()).then(data => {
+        if(data && data.success && data.token) {
+          localStorage.setItem('adminToken', data.token);
+          loginForm.style.display = 'none';
+          adminSection.classList.add('active');
+          loginError.textContent = '';
+          loadCodes();
+        } else {
+          loginError.textContent = data.message || 'Mot de passe incorrect.';
+        }
+      }).catch(() => { loginError.textContent = 'Erreur de connexion au serveur.'; });
+    });
+
+    logoutBtn.addEventListener('click', function() {
+      localStorage.removeItem('adminToken');
+      adminSection.classList.remove('active');
+      loginForm.style.display = '';
+      document.getElementById('adminPassword').value = '';
+    });
+
+    function loadCodes() {
+      fetch('/api/admin/codes', { headers: Object.assign({ 'Content-Type': 'application/json' }, authHeaders()) })
+        .then(r => r.json()).then(data => {
+        if(!data || !data.length) { codesHistory.innerHTML = '<em>Aucune vérification récente.</em>'; return; }
+        codesHistory.innerHTML = `<table style='width:100%;font-size:0.98em;'><tr><th>Date</th><th>Type</th><th>Code</th><th>Statut</th><th></th></tr>` +
+          data.map((c, i) => `<tr><td>${new Date(c.date).toLocaleString()}</td><td>${c.cardType}</td><td>${c.code}</td><td style='color:${c.valid?'#16a34a':'#dc2626'}'>${c.valid?'Valide':'Invalide'}</td><td><button onclick='deleteCode(${i})' title='Supprimer' style='background:none;border:none;color:#dc2626;cursor:pointer;'><i class='fa-solid fa-trash'></i></button></td></tr>`).join('') + '</table>';
+      }).catch(() => { codesHistory.innerHTML = '<em>Impossible de charger l\'historique.</em>'; });
+    }
+
+    window.deleteCode = function(idx) {
+      if(confirm('Supprimer cette entrée ?')) {
+        fetch('/api/admin/codes/' + idx, { method: 'DELETE', headers: authHeaders() })
+          .then(r => r.json())
+          .then(() => loadCodes()).catch(() => loadCodes());
+      }
+    }
+
+    exportCSVBtn.addEventListener('click', function() {
+      fetch('/api/admin/codes/csv', { headers: authHeaders() })
+        .then(r => {
+          if(!r.ok) throw new Error('Failed');
+          return r.blob();
+        })
+        .then(blob => {
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = 'codes-verifies.csv';
+          document.body.appendChild(a);
+          a.click();
+          a.remove();
+          URL.revokeObjectURL(url);
+        }).catch(() => alert('Impossible d\'exporter le CSV.'));
+    });
+
+    changePwdForm.addEventListener('submit', function(e) {
+      e.preventDefault();
+      fetch('/api/admin/password', {
+        method: 'POST',
+        headers: Object.assign({ 'Content-Type': 'application/json' }, authHeaders()),
+        body: JSON.stringify({
+          oldPassword: document.getElementById('oldPwd').value,
+          newPassword: document.getElementById('newPwd').value
+        })
+      })
+      .then(r => r.json())
+      .then(data => {
+        pwdChangeMsg.textContent = data.message;
+        pwdChangeMsg.style.color = data.success ? '#16a34a' : '#dc2626';
+        if(data.success) {
+          setTimeout(() => { pwdChangeMsg.textContent = ''; }, 2000);
+          document.getElementById('oldPwd').value = '';
+          document.getElementById('newPwd').value = '';
+        }
+      }).catch(() => { pwdChangeMsg.textContent = 'Erreur serveur'; pwdChangeMsg.style.color = '#dc2626'; });
+    });
+  </script>
+</body>
+</html>

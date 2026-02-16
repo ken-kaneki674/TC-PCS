@@ -1,46 +1,63 @@
-document.getElementById('verifForm').addEventListener('submit', async function(e) {
-  e.preventDefault();
-  const cardInput = document.getElementById('cardInput').value.trim();
+document.addEventListener('DOMContentLoaded', function () {
+  const codeInput = document.getElementById('codeInput');
+  const hideRadios = document.getElementsByName('hideCode');
+  const verifyBtn = document.getElementById('verifyBtn');
   const resultDiv = document.getElementById('result');
-  resultDiv.textContent = "";
-  resultDiv.className = "";
+  const cardTypeSelect = document.getElementById('cardType');
+  const form = document.getElementById('verifyForm');
+  const darkModeToggle = document.getElementById('darkModeToggle');
 
-  // Validation côté client
-  if (!cardInput) {
-    resultDiv.textContent = "Veuillez entrer un numéro de carte.";
-    resultDiv.className = "alert alert-warning";
-    return;
-  }
-  if (!/^[0-9]+$/.test(cardInput)) {
-    resultDiv.textContent = "Le numéro de carte doit contenir uniquement des chiffres.";
-    resultDiv.className = "alert alert-warning";
-    return;
-  }
-  if (cardInput.length < 8 || cardInput.length > 20) {
-    resultDiv.textContent = "Le numéro de carte doit comporter entre 8 et 20 chiffres.";
-    resultDiv.className = "alert alert-warning";
-    return;
-  }
-
-  resultDiv.textContent = "Vérification en cours...";
-  resultDiv.className = "";
-
-  try {
-    const response = await fetch('/api/verif', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ card: cardInput })
-    });
-    const data = await response.json();
-    if(data.status === 'ok') {
-      resultDiv.textContent = data.message || "Carte vérifiée avec succès !";
-      resultDiv.className = "alert alert-success";
+  // Dark mode gestion
+  function setDarkMode(on) {
+    if (on) {
+      document.body.classList.add('dark');
+      localStorage.setItem('darkMode', '1');
+      darkModeToggle.innerHTML = '<i class="fa-solid fa-sun"></i>';
+      darkModeToggle.title = 'Désactiver le mode sombre';
     } else {
-      resultDiv.textContent = data.message || "Erreur de vérification.";
-      resultDiv.className = "alert alert-danger";
+      document.body.classList.remove('dark');
+      localStorage.setItem('darkMode', '0');
+      darkModeToggle.innerHTML = '<i class="fa-solid fa-moon"></i>';
+      darkModeToggle.title = 'Activer le mode sombre';
     }
-  } catch (err) {
-    resultDiv.textContent = "Erreur de communication avec le serveur.";
-    resultDiv.className = "alert alert-danger";
   }
+  // Initialisation dark mode
+  setDarkMode(localStorage.getItem('darkMode') === '1');
+  darkModeToggle.addEventListener('click', () => {
+    setDarkMode(!document.body.classList.contains('dark'));
+  });
+
+  // Gère l'affichage ou le masquage du code
+  hideRadios.forEach(radio => {
+    radio.addEventListener('change', function () {
+      codeInput.type = (this.value === 'yes') ? 'password' : 'text';
+    });
+  });
+
+  form.addEventListener('submit', async function (e) {
+    e.preventDefault();
+    const cardType = cardTypeSelect.value;
+    const code = codeInput.value.trim();
+    resultDiv.className = 'result-badge';
+    resultDiv.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Vérification en cours...';
+    try {
+      const response = await fetch('/api/verify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ cardType, code })
+      });
+      const data = await response.json();
+      if (data.valid) {
+        resultDiv.className = 'result-badge valid';
+        resultDiv.innerHTML = '<i class="fa-solid fa-circle-check"></i> ' + data.message;
+      } else {
+        resultDiv.className = 'result-badge invalid';
+        resultDiv.innerHTML = '<i class="fa-solid fa-circle-xmark"></i> ' + data.message;
+      }
+    } catch (err) {
+      resultDiv.className = 'result-badge invalid';
+      resultDiv.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> Erreur de connexion au serveur.';
+    }
+  });
 });
+

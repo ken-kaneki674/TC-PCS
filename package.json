@@ -1,11 +1,21 @@
 {  
-  "name": "project-name",  
+  "name": "cardcheck",  
   "version": "1.0.0",  
-  "description": "A short description of your project.",  
-  "main": "index.js",  
+  "description": "Outil de vérification de cartes de recharge",  
+  "main": "backend/server.js",  
   "scripts": {    
-    "test": "echo 'Error: no test specified' && exit 1"  
+    "start": "node backend/server.js",
+    "dev": "node --watch backend/server.js"
   },  
-  "author": "Your Name",  
+  "dependencies": {
+    "express": "^5.1.0",
+    "cors": "^2.8.5",
+    "sqlite3": "^5.1.7",
+    "express-rate-limit": "^6.7.0",
+    "bcrypt": "^5.1.0",
+    "jsonwebtoken": "^9.0.0",
+    "helmet": "^7.0.0"
+  },
+  "author": "",  
   "license": "ISC" 
 }
